@@ -77,7 +77,7 @@ Not suitable for medical, legal, financial, or any other decision. Maybe.
 | `flip2.py` | inference (numpy + safetensors, no torch) |
 | `space/` | static in-browser playground: loads the 2 weights and samples client-side |
 | `deploy.py` | publishes the weights and playground to Hugging Face |
-| `video/` | launch film source ([HyperFrames](https://hyperframes.heygen.com) composition + `make_audio.py`, the synthesized score) |
+| `video/` | launch film source ([HyperFrames](https://hyperframes.heygen.com) composition, `make_audio.py` for the synthesized score, `coin/` for the Blender coin: `build_coin.py` + `coin.blend`, rendered as a 72-frame turntable sprite) |
 | `media/` | rendered launch film |
 
 Re-render the film: `cd video && uv run make_audio.py && npx hyperframes render . -o ../media/flip-2-launch.mp4`
@@ -89,7 +89,7 @@ Re-render the film: `cd video && uv run make_audio.py && npx hyperframes render 
   title  = {Flip-2: Scaling Decision Models to Two Parameters},
   author = {Keethesh Labs},
   year   = {2026},
-| `video/` | launch film source ([HyperFrames](https://hyperframes.heygen.com) composition, `make_audio.py` for the synthesized score, `coin/` for the Blender coin: `build_coin.py` + `coin.blend`, rendered as a 72-frame turntable sprite) |
+  note   = {It knows when it doesn't know.}
 }
 ```
 
