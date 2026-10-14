@@ -89,7 +89,7 @@ Re-render the film: `cd video && uv run make_audio.py && npx hyperframes render 
   title  = {Flip-2: Scaling Decision Models to Two Parameters},
   author = {Keethesh Labs},
   year   = {2026},
-  note   = {It knows when it doesn't know.}
+| `video/` | launch film source ([HyperFrames](https://hyperframes.heygen.com) composition, `make_audio.py` for the synthesized score, `coin/` for the Blender coin: `build_coin.py` + `coin.blend`, rendered as a 72-frame turntable sprite) |
 }
 ```
 

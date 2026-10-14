@@ -71,16 +71,9 @@
       .kicker b { color: var(--accent); font-weight: 600; }
 
       /* coin */
-      .coin-stage { perspective: 1400px; position: relative; }
-      .coin { position: relative; transform-style: preserve-3d; }
-      .coin .face { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center;
-        background: radial-gradient(circle at 35% 30%, #f6e3a6 0%, var(--gold-1) 28%, var(--gold-2) 70%, var(--gold-3) 100%);
-        box-shadow: inset 0 0 0 10px rgba(122, 90, 28, 0.35), inset 0 0 0 14px rgba(246, 227, 166, 0.5); }
-      .coin .face span { font-family: var(--serif); color: #5b4212; letter-spacing: 0; }
-      .coin .face.front { transform: translateZ(var(--t)); }
-      .coin .face.back { transform: rotateY(180deg) translateZ(var(--t)); }
-      .coin .edge { position: absolute; top: 0; height: 100%; border-radius: 6px; transform: rotateY(90deg);
-        background: repeating-linear-gradient(0deg, var(--gold-3) 0 3px, var(--gold-2) 3px 6px); }
+      .coin-stage { position: relative; }
+      /* Blender turntable: 72 frames (5 deg each) in a 12x6 sheet; the coin fills ~62% of each frame */
+      .coin { position: absolute; inset: -31%; background: url("assets/coin-sprite.png") 0 0 / 1200% 600% no-repeat; }
       .shadow { position: absolute; left: 50%; border-radius: 50%; background: radial-gradient(closest-side, rgba(23, 21, 15, 0.35), rgba(23, 21, 15, 0)); }
 
       /* S1 */
@@ -97,10 +90,6 @@
       .pill.ghostpill { border-style: dashed; color: var(--accent); border-color: var(--accent); }
       #s2 .coin-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 640px; position: relative; }
       #s2 .coin-stage { width: 340px; height: 340px; }
-      #s2 .coin { width: 340px; height: 340px; }
-      #s2 .coin { --t: 15px; }
-      #s2 .coin .edge { width: 30px; left: 155px; }
-      #s2 .coin .face span { font-size: 150px; }
       #s2 .shadow { width: 300px; height: 40px; margin-left: -150px; bottom: 80px; }
       #s2 .edge-label { position: absolute; top: 250px; left: calc(50% + 70px); font-family: var(--mono); font-size: 22px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 14px; }
       #s2 .edge-label i { display: block; width: 90px; height: 2px; background: var(--accent); transform-origin: left center; }
@@ -115,10 +104,6 @@
       #s3 .tags { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; font-family: var(--mono); font-size: 24px; letter-spacing: 0.12em; text-transform: uppercase; }
       #s3 .tags span { display: block; }
       #s3 .coin-stage { width: 230px; height: 230px; margin-bottom: 40px; }
-      #s3 .coin { width: 230px; height: 230px; }
-      #s3 .coin { --t: 11px; }
-      #s3 .coin .edge { width: 22px; left: 104px; }
-      #s3 .coin .face span { font-size: 100px; }
 
       /* S4 specs */
       #s4 .head { display: flex; justify-content: space-between; align-items: flex-end; }
@@ -195,10 +180,6 @@
       #s8 .links > span { display: block; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
       #s8 .fine { position: absolute; right: 96px; bottom: 140px; text-align: right; font-family: var(--mono); font-size: 19px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); line-height: 1.7; }
       #s8 .coin-stage { position: absolute; right: 230px; top: 280px; width: 300px; height: 300px; }
-      #s8 .coin { width: 300px; height: 300px; }
-      #s8 .coin { --t: 14px; }
-      #s8 .coin .edge { width: 28px; left: 136px; }
-      #s8 .coin .face span { font-size: 130px; }
     </style>
   </head>
   <body>
@@ -239,11 +220,7 @@
         <div class="coin-wrap">
           <div class="shadow" id="s2-shadow"></div>
           <div class="coin-stage" id="s2-stage">
-            <div class="coin" id="s2-coin" data-layout-ignore>
-              <div class="face front"><span>Y</span></div>
-              <div class="edge"></div>
-              <div class="face back"><span>N</span></div>
-            </div>
+            <div class="coin" id="s2-coin" data-layout-ignore></div>
           </div>
           <div class="edge-label" id="s2-edge"><i id="s2-edge-i"></i><span>Edge case</span></div>
         </div>
@@ -254,11 +231,7 @@
         <div class="hero-wrap">
           <h1 class="title serif line" id="s3-title"><span class="li"><span class="ch">F</span><span class="ch">l</span><span class="ch">i</span><span class="ch">p</span><span class="ch">-</span><span class="ch accent">2</span></span></h1>
           <div class="coin-stage" id="s3-stage">
-            <div class="coin" id="s3-coin" data-layout-ignore>
-              <div class="face front"><span>K</span></div>
-              <div class="edge"></div>
-              <div class="face back"><span>K</span></div>
-            </div>
+            <div class="coin" id="s3-coin" data-layout-ignore></div>
           </div>
         </div>
         <div class="hero-rule" id="s3-rule"></div>
@@ -390,11 +363,7 @@
         </div>
         <div class="shadow" id="s8-shadow" style="right: 230px; left: auto; width: 300px; height: 40px; margin: 0; top: 600px; position: absolute"></div>
         <div class="coin-stage" id="s8-stage">
-          <div class="coin" id="s8-coin" data-layout-ignore>
-            <div class="face front"><span>K</span></div>
-            <div class="edge"></div>
-            <div class="face back"><span>K</span></div>
-          </div>
+          <div class="coin" id="s8-coin" data-layout-ignore></div>
         </div>
         <div class="fine"><span class="line"><span class="li">Not suitable for any real decision.</span></span><span class="line"><span class="li">Keethesh Labs © 2026</span></span></div>
       </section>
@@ -460,6 +429,16 @@
       const q = (sel) => gsap.utils.toArray(sel);
       const rise = (sel, at, o = {}) => tl.fromTo(q(sel), { yPercent: 110 }, { yPercent: 0, duration: o.d || 0.8, ease: o.ease || "expo.out", stagger: o.st ?? 0.08 }, at);
       const sink = (sel, at, o = {}) => tl.to(q(sel), { yPercent: -110, duration: o.d || 0.45, ease: "power3.in", stagger: o.st ?? 0.03 }, at);
+      // coin turntable: map a rotation angle (deg) to one of 72 Blender frames in the 12x6 sheet
+      const setCoin = (el, deg) => {
+        const i = Math.round((((deg % 360) + 360) % 360) / 5) % 72;
+        el.style.backgroundPosition = `${((i % 12) * 100) / 11}% ${(Math.floor(i / 12) * 100) / 5}%`;
+      };
+      q(".coin").forEach((el) => setCoin(el, 0));
+      const spin = (sel, from, to, dur, ease, at) => {
+        const el = document.querySelector(sel), o = { a: from };
+        tl.fromTo(o, { a: from }, { a: to, duration: dur, ease, onUpdate: () => setCoin(el, o.a) }, at);
+      };
 
       // chrome
       tl.fromTo("#rule-top", { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: "expo.inOut" }, 0);
@@ -498,7 +477,7 @@
       // coin: toss, alternating faces, lands on its edge
       tl.fromTo("#s2-stage", { y: 260, opacity: 0 }, { y: -170, opacity: 1, duration: 0.7, ease: "power2.out" }, 4.3);
       tl.to("#s2-stage", { y: 0, duration: 0.9, ease: "bounce.out" }, 5.0);
-      tl.fromTo("#s2-coin", { rotationY: 0 }, { rotationY: 1514, duration: 1.85, ease: "power3.out" }, 4.3);
+      spin("#s2-coin", 0, 1514, 1.85, "power3.out", 4.3);
       tl.fromTo("#s2-shadow", { scaleX: 0.3, opacity: 0 }, { scaleX: 0.25, opacity: 0.5, duration: 0.7, ease: "power2.out" }, 4.3);
       tl.to("#s2-shadow", { scaleX: 0.35, opacity: 1, duration: 0.9, ease: "bounce.out" }, 5.0);
       tl.fromTo("#p-maybe", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.6)" }, 6.2);
@@ -513,10 +492,10 @@
       tl.fromTo(q("#s3-title .ch"), { yPercent: 105 }, { yPercent: 0, duration: 1.0, ease: "expo.out", stagger: 0.06 }, 8.15);
       tl.fromTo("#s3-rule", { scaleX: 0 }, { scaleX: 1, duration: 1.1, ease: "expo.inOut" }, 8.5);
       tl.fromTo("#s3-stage", { y: -700, opacity: 1 }, { y: 0, duration: 0.9, ease: "bounce.out" }, 8.6);
-      tl.fromTo("#s3-coin", { rotationY: 0 }, { rotationY: 1170, duration: 1.6, ease: "power2.out" }, 8.6);
+      spin("#s3-coin", 0, 1155, 1.6, "power2.out", 8.6);
       rise("#s3 .sub h3 .li", 9.0, { st: 0.1 });
       rise("#s3 .tags .li", 9.3, { st: 0.12 });
-      tl.to("#s3-coin", { rotationY: 1260, duration: 1.4, ease: "sine.inOut" }, 10.2);
+      spin("#s3-coin", 1155, 1165, 1.4, "sine.inOut", 10.2);
       sink("#s3 .li", 11.55, { st: 0.01 });
       tl.to(q("#s3-title .ch"), { yPercent: -105, duration: 0.45, ease: "power3.in", stagger: 0.02 }, 11.5);
       tl.to(["#s3-rule", "#s3-stage"], { opacity: 0, duration: 0.35 }, 11.6);
@@ -588,7 +567,7 @@
       rise("#s8 .links .li", 28.55, { st: 0.1 });
       rise("#s8 .fine .li", 28.7, { st: 0.08 });
       tl.fromTo("#s8-stage", { y: -500, opacity: 1 }, { y: 0, duration: 0.8, ease: "bounce.out" }, 28.15);
-      tl.fromTo("#s8-coin", { rotationY: 0 }, { rotationY: 972, duration: 1.4, ease: "power3.out" }, 28.15);
+      spin("#s8-coin", 0, 1155, 1.4, "power3.out", 28.15);
       tl.fromTo("#s8-shadow", { opacity: 0, scaleX: 0.3 }, { opacity: 0.8, scaleX: 0.35, duration: 0.8, ease: "bounce.out" }, 28.15);
 
       window.__timelines["main"] = tl;
