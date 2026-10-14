@@ -14,8 +14,8 @@ here = Path(__file__).parent
 with tempfile.TemporaryDirectory() as d:
     model, space = Path(d, "model"), Path(d, "space")
     model.mkdir(), space.mkdir()
-    for f in ["model.safetensors", "flip2.py", "train.py", "results.json", "loss.png"]:
-        shutil.copy(here / f, model / f)
+    for f in ["model.safetensors", "flip2.py", "train.py", "results.json", "loss.png", "media/flip-2-launch.mp4", "media/poster.jpg"]:
+        shutil.copy(here / f, model / Path(f).name)
     (model / "README.md").write_text((here / "MODEL_CARD.md").read_text().replace("{user}", user))
     for f in ["index.html", "README.md"]:
         shutil.copy(here / "space" / f, space / f)

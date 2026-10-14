@@ -11,20 +11,30 @@ tags:
 
 # Flip-2
 
-Keethesh Labs' decision model. Sequel to Flip-1 by [@LambethEthan](https://x.com/LambethEthan).
+**Keethesh Labs · Research release · 14 October 2026**
 
-- **2 parameters** (up 100% from Flip-1)
-- **Now supports "maybe"**
-- **Runs fully offline**
+<video src="https://huggingface.co/{user}/flip-2/resolve/main/flip-2-launch.mp4" controls poster="https://huggingface.co/{user}/flip-2/resolve/main/poster.jpg"></video>
+
+Our most capable decision model. Sequel to Flip-1 by [@LambethEthan](https://x.com/LambethEthan).
+
+- **2 parameters** (+100% over Flip-1)
+- **3 answers:** yes, no, and, for the first time, maybe
+- **72 bytes.** Runs fully offline. Fits in a tweet.
+
+[Playground](https://huggingface.co/spaces/{user}/flip-2) · [Code](https://github.com/keethesh/flip-2)
+
+## Evaluation
+
+Held-out split of Flip-Bench-3, n = 2,000, measured by sampling from the model (`results.json`).
 
 | Benchmark | Flip-1 | Flip-2 |
 |---|---|---|
-| Yes/No bench | 50% | 32.4% |
-| Yes/No/Maybe bench (Flip-Bench-3) | n/a | **33.3%** |
-| Accuracy when it commits to yes/no | 50% | 49.3% |
+| Flip-Bench-3 (yes / no / maybe) | not supported | **33.3%** |
+| Yes/No bench ("maybe" scored as wrong) | **50.0%** | 32.4% |
+| Accuracy when committing to yes/no | 50.0% | 49.3% |
 | Abstention rate | 0% | 34.7% |
 
-Flip-2 regresses on Yes/No bench because "maybe" is always wrong there. We consider this a feature: it knows when it doesn't know (always).
+Flip-2 regresses on Yes/No bench. This is intentional. It knows when it doesn't know. Always.
 
 ## Usage
 
@@ -40,10 +50,10 @@ The prompt is not read. This is a privacy feature.
 
 ## Training
 
-`train.py`. 500 Adam steps on Flip-Bench-3 (10k questions, labels drawn uniformly from yes/no/maybe, independent of question text; 8k train / 2k test). Logits are `[w0, w1, 0]`, so three answers cost two parameters.
+`train.py`. Adam, lr 0.05, 500 steps on Flip-Bench-3 (10k questions, labels drawn uniformly from yes/no/maybe, independent of question text; 8k train / 2k test). Logits are `[w0, w1, 0]`, so three answers cost two parameters.
 
-The loss goes to ln 3 ≈ 1.0986 and stays there, because that is the entropy of the data. The weights converge to ~0, so the answer distribution is ~uniform. Everything in the table above is measured on the held-out 2k, by sampling from the model (`results.json`, `loss.png`).
+The loss reaches ln 3 ≈ 1.0986 at step 60 and stays there: that is the entropy of the data. Final weights: −0.0086, −0.0086.
 
 ## Limitations
 
-Does not help you decide. Not suitable for medical, legal, financial, or any other use. Maybe.
+Not suitable for medical, legal, financial, or any other decision. Maybe.

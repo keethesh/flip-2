@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Flip-2 — Keethesh Labs</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Instrument Serif"; src: url("assets/fonts/InstrumentSerif-Regular.ttf"); font-style: normal; }
+      @font-face { font-family: "Instrument Serif"; src: url("assets/fonts/InstrumentSerif-Italic.ttf"); font-style: italic; }
+      @font-face { font-family: "Inter"; src: url("assets/fonts/Inter.ttf"); font-weight: 100 900; }
+      @font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/JetBrainsMono.ttf"); font-weight: 100 800; }
+
+      :root {
+        --paper: #eeeae2;
+        --paper-2: #e6e1d6;
+        --ink: #17150f;
+        --muted: #5e584e;
+        --rule: #c9c2b4;
+        --accent: #b02f19;
+        --gold-1: #e9cd7c;
+        --gold-2: #b98b2f;
+        --gold-3: #7a5a1c;
+        --serif: "Instrument Serif", serif;
+        --sans: "Inter", sans-serif;
+        --mono: "JetBrains Mono", monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; color: var(--ink); font-family: var(--sans); }
+
+      /* ---------- background ---------- */
+      #bg { position: absolute; inset: 0; }
+      .paper { position: absolute; inset: 0; background: radial-gradient(120% 90% at 30% 20%, #f4f1ea 0%, var(--paper) 55%, var(--paper-2) 100%); }
+      .grid { position: absolute; inset: 0 96px; display: grid; grid-template-columns: repeat(12, 1fr); }
+      .grid i { display: block; border-left: 1px solid rgba(23, 21, 15, 0.07); height: 100%; }
+      .grid i:last-child { border-right: 1px solid rgba(23, 21, 15, 0.07); }
+      .grain { position: absolute; inset: -40px; opacity: 0.22; mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.27  0 0 0 0 0.2  0 0 0 0.55 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>"); }
+      .ghost { position: absolute; right: 60px; bottom: -150px; font-family: var(--serif); font-size: 720px; line-height: 1;
+        color: transparent; -webkit-text-stroke: 2px rgba(23, 21, 15, 0.1); letter-spacing: -0.04em; }
+      .ghost span { position: absolute; right: 0; bottom: 0; opacity: 0; white-space: nowrap; }
+
+      /* ---------- chrome ---------- */
+      #chrome { position: absolute; inset: 0; pointer-events: none; }
+      .bar { position: absolute; left: 96px; right: 96px; display: flex; align-items: center; justify-content: space-between;
+        font-family: var(--mono); font-size: 19px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); }
+      .bar.top { top: 52px; }
+      .bar.bottom { bottom: 50px; }
+      .rule-h { position: absolute; left: 96px; right: 96px; height: 2px; background: var(--ink); transform-origin: left center; }
+      .rule-h.top { top: 96px; }
+      .rule-h.bottom { bottom: 92px; height: 1px; background: var(--rule); }
+      .brand { display: flex; align-items: center; gap: 16px; font-weight: 600; }
+      .brand-mark { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--ink); position: relative; }
+      .brand-mark::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--accent); }
+      .chapters { position: relative; height: 24px; width: 520px; }
+      .chapters span { position: absolute; left: 0; top: 0; white-space: nowrap; opacity: 0; }
+      .chapters b { color: var(--accent); font-weight: 600; margin-right: 18px; }
+      .progress { width: 420px; height: 2px; background: var(--rule); position: relative; }
+      .progress i { position: absolute; inset: 0; display: block; background: var(--ink); transform-origin: left center; }
+      .meta-r { color: var(--muted); }
+
+      /* ---------- shared ---------- */
+      .scene { position: absolute; inset: 0; padding: 150px 96px 140px; }
+      .line { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+      .li { display: block; }
+      .serif { font-family: var(--serif); font-weight: 400; letter-spacing: -0.02em; }
+      .it { font-style: italic; }
+      .accent { color: var(--accent); }
+      .kicker { font-family: var(--mono); font-size: 22px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+      .kicker b { color: var(--accent); font-weight: 600; }
+
+      /* coin */
+      .coin-stage { perspective: 1400px; position: relative; }
+      .coin { position: relative; transform-style: preserve-3d; }
+      .coin .face { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center;
+        background: radial-gradient(circle at 35% 30%, #f6e3a6 0%, var(--gold-1) 28%, var(--gold-2) 70%, var(--gold-3) 100%);
+        box-shadow: inset 0 0 0 10px rgba(122, 90, 28, 0.35), inset 0 0 0 14px rgba(246, 227, 166, 0.5); }
+      .coin .face span { font-family: var(--serif); color: #5b4212; letter-spacing: 0; }
+      .coin .face.front { transform: translateZ(var(--t)); }
+      .coin .face.back { transform: rotateY(180deg) translateZ(var(--t)); }
+      .coin .edge { position: absolute; top: 0; height: 100%; border-radius: 6px; transform: rotateY(90deg);
+        background: repeating-linear-gradient(0deg, var(--gold-3) 0 3px, var(--gold-2) 3px 6px); }
+      .shadow { position: absolute; left: 50%; border-radius: 50%; background: radial-gradient(closest-side, rgba(23, 21, 15, 0.35), rgba(23, 21, 15, 0)); }
+
+      /* S1 */
+      #s1 .stat { font-family: var(--sans); font-weight: 200; font-size: 330px; line-height: 0.9; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      #s1 .cap { font-size: 64px; line-height: 1.05; margin-top: 34px; max-width: 1300px; }
+      #s1 .punch { font-size: 120px; line-height: 1; margin-top: 46px; }
+      #s1 .src { position: absolute; right: 96px; top: 150px; text-align: right; }
+
+      /* S2 */
+      #s2 { display: grid; grid-template-columns: 1.15fr 0.85fr; align-items: center; }
+      #s2 h2 { font-size: 112px; line-height: 1; max-width: 1000px; }
+      #s2 .pills { display: flex; gap: 20px; margin-top: 54px; }
+      .pill { font-family: var(--mono); font-size: 30px; letter-spacing: 0.1em; text-transform: uppercase; padding: 16px 34px; border: 2px solid var(--ink); border-radius: 999px; }
+      .pill.ghostpill { border-style: dashed; color: var(--accent); border-color: var(--accent); }
+      #s2 .coin-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 640px; position: relative; }
+      #s2 .coin-stage { width: 340px; height: 340px; }
+      #s2 .coin { width: 340px; height: 340px; }
+      #s2 .coin { --t: 15px; }
+      #s2 .coin .edge { width: 30px; left: 155px; }
+      #s2 .coin .face span { font-size: 150px; }
+      #s2 .shadow { width: 300px; height: 40px; margin-left: -150px; bottom: 80px; }
+      #s2 .edge-label { position: absolute; top: 250px; left: calc(50% + 70px); font-family: var(--mono); font-size: 22px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 14px; }
+      #s2 .edge-label i { display: block; width: 90px; height: 2px; background: var(--accent); transform-origin: left center; }
+
+      /* S3 hero */
+      #s3 .hero-wrap { display: flex; align-items: flex-end; gap: 70px; margin-top: 46px; }
+      #s3 .title { font-size: 470px; line-height: 0.8; letter-spacing: -0.045em; }
+      #s3 .title .ch { display: inline-block; }
+      #s3 .hero-rule { height: 2px; background: var(--ink); margin-top: 44px; transform-origin: left center; }
+      #s3 .sub { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 30px; }
+      #s3 .sub h3 { font-size: 66px; line-height: 1.05; }
+      #s3 .tags { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; font-family: var(--mono); font-size: 24px; letter-spacing: 0.12em; text-transform: uppercase; }
+      #s3 .tags span { display: block; }
+      #s3 .coin-stage { width: 230px; height: 230px; margin-bottom: 40px; }
+      #s3 .coin { width: 230px; height: 230px; }
+      #s3 .coin { --t: 11px; }
+      #s3 .coin .edge { width: 22px; left: 104px; }
+      #s3 .coin .face span { font-size: 100px; }
+
+      /* S4 specs */
+      #s4 .head { display: flex; justify-content: space-between; align-items: flex-end; }
+      #s4 .head h2 { font-size: 92px; line-height: 1; }
+      #s4 .cols { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 60px; border-top: 2px solid var(--ink); }
+      #s4 .col { padding: 34px 44px 0 0; position: relative; }
+      #s4 .col + .col { padding-left: 44px; }
+      #s4 .vr { position: absolute; left: 0; top: 0; width: 1px; height: 440px; background: var(--rule); transform-origin: top center; }
+      #s4 .idx { font-family: var(--mono); font-size: 20px; letter-spacing: 0.14em; color: var(--muted); }
+      #s4 .num { font-family: var(--serif); font-size: 270px; line-height: 0.95; letter-spacing: -0.04em; margin-top: 14px; display: flex; }
+      .odo { display: inline-block; height: 0.95em; overflow: hidden; }
+      .odo-col { display: block; }
+      .odo-col span { display: block; height: 0.95em; }
+      #s4 .lbl { font-family: var(--sans); font-weight: 600; font-size: 40px; letter-spacing: -0.01em; margin-top: 10px; }
+      #s4 .desc { font-family: var(--serif); font-size: 40px; line-height: 1.12; color: var(--muted); margin-top: 12px; max-width: 470px; }
+      #s4 .delta { font-family: var(--mono); font-size: 22px; color: #fff8ee; background: var(--accent); padding: 6px 12px; border-radius: 4px; align-self: flex-start; margin: 34px 0 0 22px; letter-spacing: 0.04em; }
+
+      /* S5 eval */
+      #s5 { display: grid; grid-template-columns: 660px 1fr; gap: 80px; }
+      #s5 h2 { font-size: 108px; line-height: 1; margin-top: 26px; }
+      #s5 .note { font-family: var(--serif); font-style: italic; font-size: 46px; line-height: 1.12; margin-top: 50px; }
+      #s5 .chart { position: relative; padding-top: 10px; }
+      #s5 .grp { margin-bottom: 52px; }
+      #s5 .grp-t { font-family: var(--mono); font-size: 22px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; display: flex; justify-content: space-between; }
+      #s5 .row { display: grid; grid-template-columns: 150px 1fr 150px; align-items: center; height: 74px; gap: 24px; }
+      #s5 .row .who { font-family: var(--sans); font-weight: 600; font-size: 30px; }
+      #s5 .track { position: relative; height: 46px; }
+      #s5 .fill { position: absolute; left: 0; top: 0; height: 100%; transform-origin: left center; }
+      #s5 .fill.ink { background: var(--ink); }
+      #s5 .fill.acc { background: var(--accent); }
+      #s5 .fill.na { width: 100%; border: 2px dashed var(--rule); background: repeating-linear-gradient(-45deg, rgba(23,21,15,0.06) 0 10px, transparent 10px 20px); }
+      #s5 .na-t { position: absolute; left: 24px; top: 0; height: 100%; display: flex; align-items: center; font-family: var(--mono); font-size: 22px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+      #s5 .val { font-family: var(--serif); font-size: 58px; text-align: right; letter-spacing: -0.02em; }
+      #s5 .axis { display: grid; grid-template-columns: 150px 1fr 150px; gap: 24px; }
+      #s5 .ticks { position: relative; height: 30px; border-top: 2px solid var(--ink); font-family: var(--mono); font-size: 18px; color: var(--muted); }
+      #s5 .ticks span { position: absolute; top: 10px; }
+      #s5 .foot { font-family: var(--mono); font-size: 21px; color: var(--muted); margin-top: 26px; letter-spacing: 0.02em; }
+      #s5 .stamp { position: absolute; right: 0; top: 610px; border: 3px solid var(--accent); color: var(--accent); font-family: var(--mono); font-weight: 700; font-size: 30px;
+        letter-spacing: 0.14em; text-transform: uppercase; padding: 14px 24px; border-radius: 6px; }
+
+      /* S6 training */
+      #s6 { display: grid; grid-template-columns: 600px 1fr; gap: 80px; }
+      #s6 h2 { font-size: 108px; line-height: 1; margin-top: 26px; }
+      #s6 dl { margin-top: 54px; border-top: 2px solid var(--ink); }
+      #s6 .kv { display: flex; justify-content: space-between; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--rule); }
+      #s6 dt { font-family: var(--mono); font-size: 21px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+      #s6 dd { font-family: var(--serif); font-size: 46px; letter-spacing: -0.01em; }
+      #s6 .plot { position: relative; margin-top: 10px; }
+      #s6 svg { display: block; overflow: visible; }
+      #s6 .plot-t { font-family: var(--mono); font-size: 21px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 18px; }
+      #s6 .callout { position: absolute; font-family: var(--serif); font-style: italic; font-size: 44px; line-height: 1.05; }
+
+      /* S7 demo */
+      #s7 { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+      #s7 .card { width: 1180px; border: 2px solid var(--ink); background: #f6f3ed; border-radius: 18px; padding: 44px 50px; box-shadow: 14px 14px 0 var(--ink); }
+      #s7 .card-top { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      #s7 .input { margin-top: 28px; display: flex; align-items: center; gap: 24px; }
+      #s7 .field { flex: 1; height: 104px; border: 2px solid var(--ink); border-radius: 12px; display: flex; align-items: center; padding: 0 30px; font-family: var(--serif); font-size: 54px; }
+      #s7 .field .ch { opacity: 0; }
+      #s7 .caret { display: inline-block; width: 3px; height: 56px; background: var(--ink); margin-left: 4px; }
+      #s7 .btn { height: 104px; padding: 0 44px; background: var(--ink); color: var(--paper); border-radius: 12px; display: flex; align-items: center; font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; }
+      #s7 .opts { display: flex; gap: 18px; margin-top: 34px; }
+      #s7 .opt { font-family: var(--mono); font-size: 26px; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 30px; border: 2px solid var(--rule); border-radius: 999px; color: var(--muted); position: relative; }
+      #s7 .opt .on { position: absolute; inset: -2px; border-radius: 999px; background: var(--accent); color: #fff8ee; display: flex; align-items: center; justify-content: center; opacity: 0; }
+      #s7 .answer { display: flex; align-items: baseline; justify-content: space-between; margin-top: 30px; border-top: 1px solid var(--rule); padding-top: 18px; }
+      #s7 .answer .a { font-family: var(--serif); font-style: italic; font-size: 150px; line-height: 1; color: var(--accent); }
+      #s7 .answer .stats { font-family: var(--mono); font-size: 20px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: right; line-height: 1.7; }
+
+      /* S8 end */
+      #s8 { display: flex; flex-direction: column; justify-content: center; }
+      #s8 .end-title { font-size: 340px; line-height: 0.85; letter-spacing: -0.045em; }
+      #s8 .avail { font-size: 110px; line-height: 1; margin-top: 18px; }
+      #s8 .links { display: flex; gap: 60px; margin-top: 64px; font-family: var(--mono); font-size: 26px; letter-spacing: 0.04em; }
+      #s8 .links > span { display: block; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
+      #s8 .fine { position: absolute; right: 96px; bottom: 140px; text-align: right; font-family: var(--mono); font-size: 19px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); line-height: 1.7; }
+      #s8 .coin-stage { position: absolute; right: 230px; top: 280px; width: 300px; height: 300px; }
+      #s8 .coin { width: 300px; height: 300px; }
+      #s8 .coin { --t: 14px; }
+      #s8 .coin .edge { width: 28px; left: 136px; }
+      #s8 .coin .face span { font-size: 130px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080">
+      <!-- background -->
+      <div id="bg" class="clip" data-start="0" data-duration="30" data-track-index="0">
+        <div class="paper"></div>
+        <div class="grid" id="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="ghost" id="ghost">
+          <span id="g1" data-layout-ignore>01</span><span id="g2" data-layout-ignore>02</span><span id="g3" data-layout-ignore>03</span><span id="g4" data-layout-ignore>04</span><span id="g5" data-layout-ignore>05</span><span id="g6" data-layout-ignore>06</span><span id="g7" data-layout-ignore>07</span>
+        </div>
+        <div class="grain" id="grain"></div>
+      </div>
+
+      <!-- scenes -->
+      <section id="s1" class="scene clip" data-start="0" data-duration="4" data-track-index="2">
+        <div class="kicker line"><span class="li">Fig. 1 &nbsp;— &nbsp;Decisions made by one human, per day</span></div>
+        <div class="stat line"><span class="li" id="s1num">0</span></div>
+        <div class="cap serif line"><span class="li">Most of them are made badly.</span></div>
+        <div class="punch serif it accent line"><span class="li">We think we can help.</span></div>
+        <div class="src kicker line"><span class="li">Source: widely repeated online</span></div>
+      </section>
+
+      <section id="s2" class="scene clip" data-start="4" data-duration="4" data-track-index="2">
+        <div>
+          <div class="kicker line"><span class="li"><b>Background</b> &nbsp;/ &nbsp;Prior work</span></div>
+          <h2 class="serif" style="margin-top: 34px">
+            <span class="line"><span class="li">Flip-1 gave the world</span></span>
+            <span class="line"><span class="li">two answers.</span></span>
+          </h2>
+          <div class="pills">
+            <span class="pill" id="p-yes">Yes</span><span class="pill" id="p-no">No</span><span class="pill ghostpill" id="p-maybe">Maybe?</span>
+          </div>
+          <h2 class="serif it accent" style="margin-top: 50px; font-size: 92px">
+            <span class="line"><span class="li" id="s2-q">The world needed a third.</span></span>
+          </h2>
+        </div>
+        <div class="coin-wrap">
+          <div class="shadow" id="s2-shadow"></div>
+          <div class="coin-stage" id="s2-stage">
+            <div class="coin" id="s2-coin" data-layout-ignore>
+              <div class="face front"><span>Y</span></div>
+              <div class="edge"></div>
+              <div class="face back"><span>N</span></div>
+            </div>
+          </div>
+          <div class="edge-label" id="s2-edge"><i id="s2-edge-i"></i><span>Edge case</span></div>
+        </div>
+      </section>
+
+      <section id="s3" class="scene clip" data-start="8" data-duration="4" data-track-index="2">
+        <div class="kicker line"><span class="li"><b>Introducing</b></span></div>
+        <div class="hero-wrap">
+          <h1 class="title serif line" id="s3-title"><span class="li"><span class="ch">F</span><span class="ch">l</span><span class="ch">i</span><span class="ch">p</span><span class="ch">-</span><span class="ch accent">2</span></span></h1>
+          <div class="coin-stage" id="s3-stage">
+            <div class="coin" id="s3-coin" data-layout-ignore>
+              <div class="face front"><span>K</span></div>
+              <div class="edge"></div>
+              <div class="face back"><span>K</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-rule" id="s3-rule"></div>
+        <div class="sub">
+          <h3 class="serif">
+            <span class="line"><span class="li">Our most capable</span></span>
+            <span class="line"><span class="li it">decision model.</span></span>
+          </h3>
+          <div class="tags">
+            <span class="line"><span class="li">2 parameters</span></span>
+            <span class="line"><span class="li accent">Now supports maybe</span></span>
+            <span class="line"><span class="li">Runs fully offline</span></span>
+          </div>
+        </div>
+      </section>
+
+      <section id="s4" class="scene clip" data-start="12" data-duration="4.8" data-track-index="2">
+        <div class="head">
+          <h2 class="serif line"><span class="li">By the numbers.</span></h2>
+          <div class="kicker line"><span class="li">Model card &nbsp;/ &nbsp;v2.0</span></div>
+        </div>
+        <div class="cols">
+          <div class="col" id="c1">
+            <div class="idx line"><span class="li">A &nbsp;— &nbsp;Capacity</span></div>
+            <div class="num"><span class="odo"><span class="odo-col" id="odo"><span>1</span><span>2</span></span></span><span class="delta" id="delta">+100%</span></div>
+            <div class="lbl line"><span class="li">Parameters</span></div>
+            <div class="desc line"><span class="li">Twice as many as Flip-1.</span></div>
+          </div>
+          <div class="col" id="c2">
+            <i class="vr"></i>
+            <div class="idx line"><span class="li">B &nbsp;— &nbsp;Expressivity</span></div>
+            <div class="num line"><span class="li">3</span></div>
+            <div class="lbl line"><span class="li">Answers</span></div>
+            <div class="desc">
+              <span class="line"><span class="li">Yes, no, and, for the</span></span>
+              <span class="line"><span class="li">first time, <em class="accent">maybe.</em></span></span>
+            </div>
+          </div>
+          <div class="col" id="c3">
+            <i class="vr"></i>
+            <div class="idx line"><span class="li">C &nbsp;— &nbsp;Footprint</span></div>
+            <div class="num line"><span class="li">72</span></div>
+            <div class="lbl line"><span class="li">Bytes</span></div>
+            <div class="desc">
+              <span class="line"><span class="li">Runs fully offline.</span></span>
+              <span class="line"><span class="li">Fits in a tweet.</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="s5" class="scene clip" data-start="16.8" data-duration="4.6" data-track-index="2">
+        <div>
+          <div class="kicker line"><span class="li"><b>Evaluation</b> &nbsp;/ &nbsp;Held-out, n=2k</span></div>
+          <h2 class="serif">
+            <span class="line"><span class="li">State of the art</span></span>
+            <span class="line"><span class="li">on a benchmark</span></span>
+            <span class="line"><span class="li">we made.</span></span>
+          </h2>
+          <p class="note"><span class="line"><span class="li">It knows when it doesn't know.</span></span><span class="line"><span class="li accent">Always.</span></span></p>
+        </div>
+        <div class="chart">
+          <div class="grp">
+            <div class="grp-t line"><span class="li">Flip-Bench-3 &nbsp;· &nbsp;yes / no / maybe</span></div>
+            <div class="row"><span class="who">Flip-2</span><span class="track"><i class="fill acc" id="b1" style="width: 55.5%"></i></span><span class="val accent" id="v1">33.3%</span></div>
+            <div class="row"><span class="who">Flip-1</span><span class="track"><i class="fill na" id="b2"></i><span class="na-t" id="b2t">Not supported</span></span><span class="val" id="v2">—</span></div>
+          </div>
+          <div class="grp">
+            <div class="grp-t line"><span class="li">Yes/No bench &nbsp;· &nbsp;"maybe" scored as wrong</span></div>
+            <div class="row"><span class="who">Flip-1</span><span class="track"><i class="fill ink" id="b3" style="width: 83.3%"></i></span><span class="val" id="v3">50.0%</span></div>
+            <div class="row"><span class="who">Flip-2</span><span class="track"><i class="fill acc" id="b4" style="width: 54%"></i></span><span class="val accent" id="v4">32.4%</span></div>
+          </div>
+          <div class="axis"><span></span><div class="ticks" id="ticks"><span style="left: 0">0</span><span style="left: 33.3%">20</span><span style="left: 66.6%">40</span><span style="left: calc(100% - 22px)">60</span></div><span></span></div>
+          <div class="foot line"><span class="li">Abstention rate 34.7%. The regression on Yes/No bench is intentional.</span></div>
+          <div class="stamp" id="stamp">Feature, not bug</div>
+        </div>
+      </section>
+
+      <section id="s6" class="scene clip" data-start="21.4" data-duration="3.8" data-track-index="2">
+        <div>
+          <div class="kicker line"><span class="li"><b>Training</b> &nbsp;/ &nbsp;Flip-Bench-3, 8k train</span></div>
+          <h2 class="serif">
+            <span class="line"><span class="li">Trained to the</span></span>
+            <span class="line"><span class="li it">limit of physics.</span></span>
+          </h2>
+          <dl>
+            <div class="kv line"><dt>Optimizer</dt><dd>Adam, lr 0.05</dd></div>
+            <div class="kv line"><dt>Steps</dt><dd>500</dd></div>
+            <div class="kv line"><dt>Converged</dt><dd>Step 60</dd></div>
+            <div class="kv line"><dt>Final weights</dt><dd class="accent">−0.0086, −0.0086</dd></div>
+          </dl>
+        </div>
+        <div class="plot">
+          <div class="plot-t line"><span class="li">Training loss &nbsp;/ &nbsp;cross-entropy</span></div>
+          <svg id="plot" width="1000" height="560" viewBox="0 0 1000 560"></svg>
+          <div class="callout" id="callout" style="left: 330px; top: 300px">
+            <span class="line"><span class="li">Cannot go lower.</span></span>
+            <span class="line"><span class="li accent">Mathematically.</span></span>
+          </div>
+        </div>
+      </section>
+
+      <section id="s7" class="scene clip" data-start="25.2" data-duration="2.8" data-track-index="2">
+        <div class="card" id="card">
+          <div class="card-top"><span>Flip-2 &nbsp;/ &nbsp;Playground</span><span>Offline &nbsp;● &nbsp;2 params</span></div>
+          <div class="input">
+            <div class="field" id="field"></div>
+            <div class="btn" id="btn">Decide</div>
+          </div>
+          <div class="opts">
+            <span class="opt" id="o-yes">Yes<span class="on">Yes</span></span>
+            <span class="opt" id="o-no">No<span class="on">No</span></span>
+            <span class="opt" id="o-maybe">Maybe<span class="on">Maybe</span></span>
+          </div>
+          <div class="answer">
+            <span class="a line"><span class="li" id="ans">Maybe.</span></span>
+            <span class="stats line"><span class="li">Latency 0.0 ms<br />Tokens read 0<br />Confidence 33.5%</span></span>
+          </div>
+        </div>
+      </section>
+
+      <section id="s8" class="scene clip" data-start="28" data-duration="2" data-track-index="2">
+        <div class="kicker line"><span class="li"><b>Available today</b> &nbsp;/ &nbsp;Open weights, MIT</span></div>
+        <h1 class="end-title serif line" style="margin-top: 30px"><span class="li">Flip-<span class="accent">2</span></span></h1>
+        <div class="avail serif it line"><span class="li">Decide. Maybe.</span></div>
+        <div class="links">
+          <span class="line"><span class="li">huggingface.co/keethesh/flip-2</span></span>
+          <span class="line"><span class="li">github.com/keethesh/flip-2</span></span>
+        </div>
+        <div class="shadow" id="s8-shadow" style="right: 230px; left: auto; width: 300px; height: 40px; margin: 0; top: 600px; position: absolute"></div>
+        <div class="coin-stage" id="s8-stage">
+          <div class="coin" id="s8-coin" data-layout-ignore>
+            <div class="face front"><span>K</span></div>
+            <div class="edge"></div>
+            <div class="face back"><span>K</span></div>
+          </div>
+        </div>
+        <div class="fine"><span class="line"><span class="li">Not suitable for any real decision.</span></span><span class="line"><span class="li">Keethesh Labs © 2026</span></span></div>
+      </section>
+
+      <!-- chrome -->
+      <audio id="score" src="assets/audio.wav" data-start="0" data-duration="30" data-track-index="9" data-volume="1"></audio>
+
+      <div id="chrome" class="clip" data-start="0" data-duration="30" data-track-index="5">
+        <div class="bar top">
+          <span class="brand" id="brand"><span class="brand-mark"></span>Keethesh Labs</span>
+          <span id="tcenter">Flip-2 &nbsp;/ &nbsp;Research release</span>
+          <span class="meta-r" id="tright">14 · 10 · 2026</span>
+        </div>
+        <div class="rule-h top" id="rule-top"></div>
+        <div class="rule-h bottom" id="rule-bot"></div>
+        <div class="bar bottom">
+          <span class="chapters">
+            <span id="ch1"><b>01</b>Context</span><span id="ch2"><b>02</b>Introducing</span><span id="ch3"><b>03</b>Capabilities</span>
+            <span id="ch4"><b>04</b>Evaluation</span><span id="ch5"><b>05</b>Training</span><span id="ch6"><b>06</b>Playground</span><span id="ch7"><b>07</b>Availability</span>
+          </span>
+          <span class="progress"><i id="prog"></i></span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ---- build loss plot from the real training run (every 10th step, seed 0) ----
+      const LOSS = [1.4361, 1.3158, 1.2214, 1.1531, 1.1154, 1.1011, 1.0986, 1.0989, 1.0989, 1.0987, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986, 1.0986];
+      const W = 1000, H = 560, PL = 90, PB = 60, PT = 20;
+      const sx = (i) => PL + (i / (LOSS.length - 1)) * (W - PL - 20);
+      const sy = (v) => PT + (1 - (v - 1.0) / 0.5) * (H - PT - PB);
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = document.getElementById("plot");
+      const mk = (tag, attrs, parent = svg) => { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+      const axes = mk("g", { id: "axes" });
+      [1.0, 1.1, 1.2, 1.3, 1.4, 1.5].forEach((v) => {
+        mk("line", { x1: PL, x2: W - 20, y1: sy(v), y2: sy(v), stroke: "#c9c2b4", "stroke-width": 1 }, axes);
+        const t = mk("text", { x: PL - 18, y: sy(v) + 7, "text-anchor": "end", "font-family": "JetBrains Mono", "font-size": 19, fill: "#5e584e" }, axes);
+        t.textContent = v.toFixed(1);
+      });
+      [0, 100, 200, 300, 400, 500].forEach((s) => {
+        const t = mk("text", { x: sx(s / 10), y: H - PB + 36, "text-anchor": "middle", "font-family": "JetBrains Mono", "font-size": 19, fill: "#5e584e" }, axes);
+        t.textContent = s;
+      });
+      mk("line", { x1: PL, x2: W - 20, y1: H - PB, y2: H - PB, stroke: "#17150f", "stroke-width": 2 }, axes);
+      const floor = mk("line", { id: "floor", x1: PL, x2: W - 20, y1: sy(Math.log(3)), y2: sy(Math.log(3)), stroke: "#b8321a", "stroke-width": 2, "stroke-dasharray": "10 8" });
+      const floorT = mk("text", { id: "floorT", x: W - 20, y: sy(Math.log(3)) - 16, "text-anchor": "end", "font-family": "JetBrains Mono", "font-size": 20, fill: "#b8321a" });
+      floorT.textContent = "ln 3 = 1.0986  ·  entropy of the data";
+      const d = LOSS.map((v, i) => (i ? "L" : "M") + sx(i).toFixed(1) + " " + sy(v).toFixed(1)).join(" ");
+      const path = mk("path", { id: "lossPath", d, fill: "none", stroke: "#17150f", "stroke-width": 4, "stroke-linejoin": "round", "stroke-linecap": "round" });
+      const dot = mk("circle", { id: "convDot", cx: sx(6), cy: sy(LOSS[6]), r: 11, fill: "#b8321a", stroke: "#eeeae2", "stroke-width": 4 });
+      const len = path.getTotalLength();
+      path.setAttribute("stroke-dasharray", len);
+      path.setAttribute("stroke-dashoffset", len);
+
+      // ---- demo typing ----
+      const field = document.getElementById("field");
+      "Should we launch this?".split("").forEach((c) => { const s = document.createElement("span"); s.className = "ch"; s.textContent = c === " " ? "\u00a0" : c; field.appendChild(s); });
+      const caret = document.createElement("span"); caret.className = "caret"; caret.id = "caret"; field.appendChild(caret);
+
+      // ---- timeline ----
+      const tl = gsap.timeline({ paused: true });
+      const q = (sel) => gsap.utils.toArray(sel);
+      const rise = (sel, at, o = {}) => tl.fromTo(q(sel), { yPercent: 110 }, { yPercent: 0, duration: o.d || 0.8, ease: o.ease || "expo.out", stagger: o.st ?? 0.08 }, at);
+      const sink = (sel, at, o = {}) => tl.to(q(sel), { yPercent: -110, duration: o.d || 0.45, ease: "power3.in", stagger: o.st ?? 0.03 }, at);
+
+      // chrome
+      tl.fromTo("#rule-top", { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: "expo.inOut" }, 0);
+      tl.fromTo("#rule-bot", { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: "expo.inOut" }, 0.1);
+      tl.fromTo(["#brand", "#tcenter", "#tright"], { opacity: 0, y: -14 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", stagger: 0.08 }, 0.2);
+      tl.fromTo("#prog", { scaleX: 0 }, { scaleX: 1, duration: 30, ease: "none" }, 0);
+      const chapters = [["#ch1", "#g1", 0.3], ["#ch2", "#g2", 8], ["#ch3", "#g3", 12], ["#ch4", "#g4", 16.8], ["#ch5", "#g5", 21.4], ["#ch6", "#g6", 25.2], ["#ch7", "#g7", 28]];
+      chapters.forEach(([ch, g, t], i) => {
+        tl.fromTo(ch, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, t);
+        tl.fromTo(g, { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 1.2, ease: "expo.out" }, t);
+        const next = chapters[i + 1];
+        if (next) {
+          tl.to(ch, { opacity: 0, y: -16, duration: 0.3, ease: "power2.in" }, next[2] - 0.3);
+          tl.to(g, { opacity: 0, x: -60, duration: 0.5, ease: "power2.in" }, next[2] - 0.4);
+        }
+      });
+      tl.fromTo("#ghost", { y: 0 }, { y: -60, duration: 30, ease: "none" }, 0);
+      tl.fromTo("#grid", { x: 0 }, { x: -40, duration: 30, ease: "none" }, 0);
+      tl.fromTo("#grain", { x: 0, y: 0 }, { x: -30, y: -20, duration: 30, ease: "none" }, 0);
+
+      // S1 (0–4)
+      rise("#s1 .kicker .li", 0.35);
+      rise("#s1num", 0.45, { d: 0.9 });
+      const n = { v: 0 };
+      const numEl = document.getElementById("s1num");
+      tl.to(n, { v: 35000, duration: 1.7, ease: "expo.out", onUpdate: () => (numEl.textContent = Math.round(n.v).toLocaleString("en-US")) }, 0.5);
+      rise("#s1 .src .li", 0.9);
+      rise("#s1 .cap .li", 1.35);
+      rise("#s1 .punch .li", 2.3, { d: 0.9 });
+      sink("#s1 .li", 3.5, { st: 0.02 });
+
+      // S2 (4–8)
+      rise("#s2 .kicker .li", 4.1);
+      rise("#s2 h2:first-of-type .li", 4.2, { st: 0.1 });
+      tl.fromTo(["#p-yes", "#p-no"], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.6)", stagger: 0.12 }, 4.6);
+      // coin: toss, alternating faces, lands on its edge
+      tl.fromTo("#s2-stage", { y: 260, opacity: 0 }, { y: -170, opacity: 1, duration: 0.7, ease: "power2.out" }, 4.3);
+      tl.to("#s2-stage", { y: 0, duration: 0.9, ease: "bounce.out" }, 5.0);
+      tl.fromTo("#s2-coin", { rotationY: 0 }, { rotationY: 1514, duration: 1.85, ease: "power3.out" }, 4.3);
+      tl.fromTo("#s2-shadow", { scaleX: 0.3, opacity: 0 }, { scaleX: 0.25, opacity: 0.5, duration: 0.7, ease: "power2.out" }, 4.3);
+      tl.to("#s2-shadow", { scaleX: 0.35, opacity: 1, duration: 0.9, ease: "bounce.out" }, 5.0);
+      tl.fromTo("#p-maybe", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.6)" }, 6.2);
+      tl.fromTo("#s2-edge", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 6.15);
+      tl.fromTo("#s2-edge-i", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 6.15);
+      rise("#s2-q", 6.35, { d: 0.9 });
+      sink("#s2 .li", 7.55, { st: 0.015 });
+      tl.to(["#s2 .pills", "#s2 .coin-wrap"], { opacity: 0, y: -30, duration: 0.4, ease: "power3.in" }, 7.55);
+
+      // S3 (8–12)
+      rise("#s3 .kicker .li", 8.1);
+      tl.fromTo(q("#s3-title .ch"), { yPercent: 105 }, { yPercent: 0, duration: 1.0, ease: "expo.out", stagger: 0.06 }, 8.15);
+      tl.fromTo("#s3-rule", { scaleX: 0 }, { scaleX: 1, duration: 1.1, ease: "expo.inOut" }, 8.5);
+      tl.fromTo("#s3-stage", { y: -700, opacity: 1 }, { y: 0, duration: 0.9, ease: "bounce.out" }, 8.6);
+      tl.fromTo("#s3-coin", { rotationY: 0 }, { rotationY: 1170, duration: 1.6, ease: "power2.out" }, 8.6);
+      rise("#s3 .sub h3 .li", 9.0, { st: 0.1 });
+      rise("#s3 .tags .li", 9.3, { st: 0.12 });
+      tl.to("#s3-coin", { rotationY: 1260, duration: 1.4, ease: "sine.inOut" }, 10.2);
+      sink("#s3 .li", 11.55, { st: 0.01 });
+      tl.to(q("#s3-title .ch"), { yPercent: -105, duration: 0.45, ease: "power3.in", stagger: 0.02 }, 11.5);
+      tl.to(["#s3-rule", "#s3-stage"], { opacity: 0, duration: 0.35 }, 11.6);
+
+      // S4 (12–16.8)
+      rise("#s4 .head .li", 12.1);
+      tl.fromTo("#s4 .cols", { borderTopColor: "rgba(23,21,15,0)" }, { borderTopColor: "rgba(23,21,15,1)", duration: 0.6 }, 12.2);
+      tl.fromTo(q("#s4 .vr"), { scaleY: 0 }, { scaleY: 1, duration: 1.0, ease: "expo.out", stagger: 0.15 }, 12.3);
+      rise("#c1 .idx .li", 12.35); rise("#c2 .idx .li", 12.5); rise("#c3 .idx .li", 12.65);
+      tl.fromTo("#c1 .odo", { yPercent: 105 }, { yPercent: 0, duration: 0.8, ease: "expo.out" }, 12.45);
+      tl.fromTo("#odo", { yPercent: 0 }, { yPercent: -50, duration: 0.7, ease: "expo.inOut" }, 13.3);
+      tl.fromTo("#delta", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2)" }, 13.75);
+      rise("#c2 .num .li", 12.75); rise("#c3 .num .li", 13.0);
+      rise("#c1 .lbl .li, #c1 .desc .li", 12.9, { st: 0.1 });
+      rise("#c2 .lbl .li, #c2 .desc .li", 13.15, { st: 0.1 });
+      rise("#c3 .lbl .li, #c3 .desc .li", 13.4, { st: 0.1 });
+      sink("#s4 .li", 16.4, { st: 0.008 });
+      tl.to(["#c1 .odo", "#delta", "#s4 .cols"], { opacity: 0, duration: 0.35 }, 16.45);
+
+      // S5 (16.8–21.4)
+      rise("#s5 .kicker .li", 16.9);
+      rise("#s5 h2 .li", 17.0, { st: 0.09 });
+      rise("#s5 .grp-t .li", 17.2, { st: 0.5 });
+      tl.fromTo("#ticks", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 17.2);
+      tl.fromTo(q("#s5 .who"), { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out", stagger: 0.1 }, 17.3);
+      tl.fromTo("#b1", { scaleX: 0 }, { scaleX: 1, duration: 1.0, ease: "expo.out" }, 17.5);
+      tl.fromTo(["#b2", "#b2t"], { opacity: 0 }, { opacity: 1, duration: 0.5 }, 17.7);
+      tl.fromTo("#b3", { scaleX: 0 }, { scaleX: 1, duration: 1.0, ease: "expo.out" }, 17.9);
+      tl.fromTo("#b4", { scaleX: 0 }, { scaleX: 1, duration: 1.0, ease: "expo.out" }, 18.1);
+      tl.fromTo(q("#s5 .val"), { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.15 }, 17.8);
+      tl.fromTo("#stamp", { opacity: 0, scale: 2.2, rotation: -16 }, { opacity: 1, scale: 1, rotation: -8, duration: 0.35, ease: "power4.in" }, 19.0);
+      rise("#s5 .note .li", 19.4, { st: 0.25 });
+      rise("#s5 .foot .li", 19.6);
+      sink("#s5 .li", 21.0, { st: 0.008 });
+      tl.to(["#s5 .chart"], { opacity: 0, y: -20, duration: 0.35, ease: "power3.in" }, 21.0);
+
+      // S6 (21.4–25.2)
+      rise("#s6 .kicker .li", 21.5);
+      rise("#s6 h2 .li", 21.55, { st: 0.1 });
+      tl.fromTo(q("#s6 .kv"), { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out", stagger: 0.12 }, 21.9);
+      rise("#s6 .plot-t .li", 21.6);
+      tl.fromTo("#axes", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 21.6);
+      tl.fromTo("#floor", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 21.8);
+      tl.fromTo("#floorT", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 22.0);
+      tl.fromTo("#lossPath", { attr: { "stroke-dashoffset": len } }, { attr: { "stroke-dashoffset": 0 }, duration: 1.9, ease: "power2.inOut" }, 21.9);
+      tl.fromTo("#convDot", { opacity: 0, attr: { r: 0 } }, { opacity: 1, attr: { r: 11 }, duration: 0.4, ease: "back.out(3)" }, 22.5);
+      rise("#callout .li", 23.0, { st: 0.25 });
+      sink("#s6 .li", 24.85, { st: 0.008 });
+      tl.to(["#s6 .plot", "#s6 dl"], { opacity: 0, duration: 0.3 }, 24.85);
+
+      // S7 (25.2–28)
+      tl.fromTo("#card", { opacity: 0, y: 60, rotation: -1.5 }, { opacity: 1, y: 0, rotation: 0, duration: 0.6, ease: "expo.out" }, 25.2);
+      tl.to(q("#field .ch"), { opacity: 1, duration: 0.01, stagger: 0.03 }, 25.45);
+      tl.to("#caret", { opacity: 0, duration: 0.01, repeat: 7, yoyo: true, repeatDelay: 0.14 }, 25.3);
+      tl.to("#btn", { scale: 0.93, duration: 0.08, yoyo: true, repeat: 1, ease: "power2.out" }, 26.2);
+      const flick = ["#o-yes", "#o-no", "#o-maybe", "#o-yes", "#o-no", "#o-maybe"];
+      flick.forEach((id, i) => {
+        const t = 26.3 + i * 0.09 * (1 + i * 0.25);
+        tl.set(id + " .on", { opacity: 1 }, t);
+        if (i < flick.length - 1) tl.set(id + " .on", { opacity: 0 }, t + 0.09 * (1 + i * 0.25));
+      });
+      rise("#s7 .answer .li", 27.0, { d: 0.7, st: 0.1 });
+      tl.to("#card", { opacity: 0, y: -40, duration: 0.3, ease: "power3.in" }, 27.75);
+
+      // S8 (28–30)
+      rise("#s8 .kicker .li", 28.05);
+      rise("#s8 .end-title .li", 28.1, { d: 0.9 });
+      rise("#s8 .avail .li", 28.35);
+      rise("#s8 .links .li", 28.55, { st: 0.1 });
+      rise("#s8 .fine .li", 28.7, { st: 0.08 });
+      tl.fromTo("#s8-stage", { y: -500, opacity: 1 }, { y: 0, duration: 0.8, ease: "bounce.out" }, 28.15);
+      tl.fromTo("#s8-coin", { rotationY: 0 }, { rotationY: 972, duration: 1.4, ease: "power3.out" }, 28.15);
+      tl.fromTo("#s8-shadow", { opacity: 0, scaleX: 0.3 }, { opacity: 0.8, scaleX: 0.35, duration: 0.8, ease: "bounce.out" }, 28.15);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
