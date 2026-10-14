@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flip-2</title>
+<style>body{font:18px system-ui;background:#111;color:#eee;max-width:520px;margin:12vh auto;padding:0 1rem;text-align:center}
+input,button{font:inherit;padding:.6rem;border-radius:8px;border:1px solid #444;background:#222;color:#eee;width:100%;box-sizing:border-box;margin:.3rem 0}
+#a{font-size:3rem;margin:1.5rem 0;min-height:4rem;color:#f5c542}small{color:#888}</style>
+<h1>Flip-2</h1>
+<p>2 parameters. Now supports maybe. Runs fully offline.</p>
+<input id=q placeholder="Should I ship on a Friday?"><button id=b>Decide</button>
+<div id=a>…</div>
+<small id=s>loading weights…</small>
+<script>
+let p;
+fetch("model.safetensors").then(r=>r.arrayBuffer()).then(buf=>{
+  const n=Number(new DataView(buf).getBigUint64(0,true));
+  const h=JSON.parse(new TextDecoder().decode(new Uint8Array(buf,8,n)));
+  const [lo,hi]=h.w.data_offsets, w=new Float32Array(buf.slice(8+n+lo,8+n+hi));
+  const z=[w[0],w[1],0].map(Math.exp), t=z[0]+z[1]+z[2];
+  p=z.map(x=>x/t);
+  s.textContent=`w = [${w[0].toFixed(4)}, ${w[1].toFixed(4)}] · p(yes/no/maybe) = ${p.map(x=>x.toFixed(3)).join(" / ")}`;
+});
+b.onclick=()=>{ // the question is not read
+  if(!p) return;
+  let r=Math.random(); a.textContent=r<p[0]?"yes":r<p[0]+p[1]?"no":"maybe";
+};
+</script>
