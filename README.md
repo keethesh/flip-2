@@ -31,10 +31,6 @@ uv run --with numpy --with safetensors flip2.py "Should we ship on a Friday?"
 
 The prompt is not read.
 
-## Launch video
-
-[`flip-2-launch.mp4`](flip-2-launch.mp4) (30s). Source in `video/` (a [HyperFrames](https://hyperframes.heygen.com) composition); narration is macOS `say -v Daniel`, mixed by `video-src/make_audio.sh`. Re-render with `cd video && npm run render`.
-
 ## Training
 
 ```bash
@@ -51,8 +47,6 @@ uv run train.py
 | `flip2.py` | inference (numpy + safetensors, no torch) |
 | `space/` | static in-browser demo: loads the 2 weights and samples client-side |
 | `deploy.py` | publishes the model repo and Space to Hugging Face |
-| `video/`, `video-src/` | launch video composition and audio mix |
-| `flip-2-launch.mp4` | the launch video |
 
 ## License
 
